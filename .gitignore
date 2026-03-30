@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Databases & Environment
+*.sqlite3
+.env
+
+# Alembic
+# Note: Keep the 'migrations' folder, but ignore pycache inside it
+migrations/__pycache__/
