@@ -3,7 +3,7 @@ from shared.models import TrimmedBaseModel
 from shared.utils import validation_error
 
 
-class UserCreate(TrimmedBaseModel):
+class UserCreateSchema(TrimmedBaseModel):
     first_name: str
     last_name: str
     middle_name: str = None
@@ -42,3 +42,21 @@ class UserCreate(TrimmedBaseModel):
             values['identifier'] = email
 
         return values
+
+
+class UserLoginSchema(TrimmedBaseModel):
+    method: str
+    identifier: str
+    password: str = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_method(cls, values):
+        method = values.get('method', '').upper()
+        identifier = values.get('identifier', '').lower()
+
+        values['method'] = method
+        values['identifier'] = identifier
+
+        return values
+
