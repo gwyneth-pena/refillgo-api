@@ -31,4 +31,4 @@ def root():
     return {"message": "Welcome to Refill Go API! This is a simple API to manage water refilling stations pick up and delivery services. Visit our documentation at /docs for more information."}
 
 
-app.include_router(v1_router, prefix="/api/v1")
+app.include_router(v1_router, prefix="/v1")
