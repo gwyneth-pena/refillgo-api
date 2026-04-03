@@ -1,4 +1,3 @@
-
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import relationship
 
@@ -29,7 +28,7 @@ class UserLogin(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     method = Column(String(20), nullable=False)
-    identifier = Column(String(200), nullable=False)
+    identifier = Column(String(200), nullable=False, unique=True)
     password = Column(String(200), nullable=True)
 
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
@@ -47,7 +46,6 @@ class Role(Base):
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
 
-    users = relationship("User", back_populates="roles")
     user_roles = relationship("UserRole", back_populates="role", cascade="all, delete-orphan")
 
 
