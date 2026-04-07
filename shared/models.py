@@ -1,8 +1,8 @@
 from pydantic import BaseModel, model_validator
-from typing import Any
+from typing import Any, ClassVar
 
 class TrimmedBaseModel(BaseModel):
-    NO_TRIM = {"password"}
+    NO_TRIM: ClassVar[set[str]] = {"password"}
 
     @model_validator(mode="before")
     @classmethod
