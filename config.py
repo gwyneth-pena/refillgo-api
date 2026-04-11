@@ -15,6 +15,10 @@ MAIL_SERVER = os.getenv("MAIL_SERVER")
 MAIL_PORT = os.getenv("MAIL_PORT")
 MAIL_FROM = os.getenv("MAIL_FROM")
 
+#MONGO 
+MONGO_URI = os.getenv("MONGO_URI")
+MONGO_DB_NAME = os.getenv("MONGO_DB_NAME")
+
 ENV = os.getenv("ENV", "development")
 SECRET_KEY = os.getenv("SECRET_KEY")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")

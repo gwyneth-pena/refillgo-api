@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import EmailStr, model_validator
 from shared.models import TrimmedBaseModel
 from shared.utils import validation_error
@@ -60,3 +62,17 @@ class UserLoginSchema(TrimmedBaseModel):
 
         return values
 
+
+class UserGenerateResetPasswordTokenSchema(TrimmedBaseModel):
+    email: EmailStr
+
+
+class UserChangePasswordSchema(TrimmedBaseModel):
+    token: str
+    new_password: str
+
+
+class PasswordResetToken(TrimmedBaseModel):
+    email: EmailStr
+    token: str
+    expires_at: datetime

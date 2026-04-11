@@ -1,4 +1,5 @@
 import datetime
+import secrets
 from argon2 import PasswordHasher
 from httpcore import Response
 import jwt
@@ -6,8 +7,9 @@ from sqlalchemy.orm import Session
 from argon2.exceptions import VerifyMismatchError
 from config import SECRET_KEY
 from modules.users.models import Role, User, UserLogin, UserRole
-from modules.users.schemas import UserCreateSchema, UserLoginSchema
+from modules.users.schemas import PasswordResetToken, UserCreateSchema, UserLoginSchema
 from shared.utils import validation_error
+from pymongo import AsyncMongoClient
 
 
 
@@ -115,3 +117,23 @@ def authenticate_user(payload: UserLoginSchema, db: Session, response: Response)
         'created_at': user.created_at,
         'updated_at': user.updated_at,
     }
+
+
+async def get_reset_password_token(email: str, db: Session, mongo_db: AsyncMongoClient) -> dict:
+    user_login = db.query(UserLogin).filter_by(method='EMAIL', identifier=email).first()
+
+    if not user_login:
+        raise validation_error('email', 'Email does not exist.')
+
+    token = secrets.token_urlsafe(32)
+
+    password_token = PasswordResetToken(
+        email=email,
+        token=token,
+        expires_at=datetime.datetime.now() + datetime.timedelta(minutes=15),
+    )
+
+    await mongo_db.passwordtokens.insert_one(password_token.dict())
+    await mongo_db.passwordtokens.create_index("expires_at", expireAfterSeconds=0)
+
+    return password_token.token
