@@ -1,5 +1,4 @@
 from unittest.mock import MagicMock
-
 from httpcore import Response
 import pytest
 from modules.users.schemas import UserCreateSchema
