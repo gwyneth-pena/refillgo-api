@@ -136,7 +136,7 @@ async def get_reset_password_token(email: str, db: Session, mongo_db: AsyncMongo
         expires_at=datetime.datetime.now() + datetime.timedelta(minutes=15),
     )
 
-    await mongo_db.passwordtokens.insert_one(password_token.dict())
+    await mongo_db.passwordtokens.insert_one(password_token.model_dump())
     await mongo_db.passwordtokens.create_index("expires_at", expireAfterSeconds=0)
 
     return password_token.token
