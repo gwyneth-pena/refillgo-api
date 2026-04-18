@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from argon2.exceptions import VerifyMismatchError
 from config import SECRET_KEY
 from modules.users.models import Role, User, UserLogin, UserRole
-from modules.users.schemas import PasswordResetToken, UserCreateSchema, UserLoginSchema
+from modules.users.schemas import PasswordResetToken, UserChangePasswordSchema, UserCreateSchema, UserLoginSchema
 from shared.utils import validation_error
 from pymongo import AsyncMongoClient
 
@@ -20,6 +20,13 @@ def verify_password(hashed_password: str, plain_password: str) -> bool:
         return False
     except Exception:
         return False
+    
+def get_hashed_password(plain_password: str) -> str:
+    return PasswordHasher(
+        memory_cost=65536, # 64MB of RAM
+        time_cost=3,       # 3 iterations
+        parallelism=4
+    ).hash(plain_password)
     
 
 def create_access_token(data: dict, expiry_seconds: int = 3600) -> str:
@@ -61,11 +68,7 @@ def add_user(payload: UserCreateSchema, db: Session, response: Response) -> dict
     user_role = UserRole(role_id=existing_role.id)
     new_user.user_roles.append(user_role)
 
-    hashed_password = PasswordHasher(
-        memory_cost=65536, # 64MB of RAM
-        time_cost=3,       # 3 iterations
-        parallelism=4
-    ).hash(payload.password)
+    hashed_password = get_hashed_password(payload.password)
 
     new_user.logins.append(
         UserLogin(
@@ -137,3 +140,27 @@ async def get_reset_password_token(email: str, db: Session, mongo_db: AsyncMongo
     await mongo_db.passwordtokens.create_index("expires_at", expireAfterSeconds=0)
 
     return password_token.token
+
+
+async def change_password(payload: UserChangePasswordSchema, db: Session, mongo_db: AsyncMongoClient) -> dict:
+    token = await mongo_db.passwordtokens.find_one({'token': payload.token})
+    
+    if not token:
+        raise validation_error('token', 'Invalid token.')
+
+    if token['expires_at'] < datetime.datetime.now():
+        raise validation_error('token', 'Token has expired.')
+    
+    user_login = db.query(UserLogin).filter_by(method='EMAIL', identifier=token['email']).first()
+
+    if not user_login:
+        raise validation_error('email', 'User does not exist.')
+    
+    hashed_password = get_hashed_password(payload.new_password)
+
+    user_login.password = hashed_password
+
+    db.commit()
+    db.refresh(user_login)
+
+    return True

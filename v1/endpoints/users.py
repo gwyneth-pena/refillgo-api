@@ -5,8 +5,8 @@ from shared.email import send_email
 from sqlalchemy.orm import Session
 from pymongo import AsyncMongoClient
 from db import get_db, get_mongo_db
-from modules.users.schemas import UserCreateSchema, UserGenerateResetPasswordTokenSchema, UserLoginSchema
-from modules.users.services import add_user, authenticate_user, get_reset_password_token
+from modules.users.schemas import UserChangePasswordSchema, UserCreateSchema, UserGenerateResetPasswordTokenSchema, UserLoginSchema
+from modules.users.services import add_user, authenticate_user, change_password, get_reset_password_token
 from shared.utils import validation_error
 from fastapi import BackgroundTasks
 
@@ -60,4 +60,17 @@ async def generate_reset_password_token(payload: UserGenerateResetPasswordTokenS
     response.status_code = 201
     return {
         'message': 'Password reset link has been sent to your email.',
+    }
+
+
+@router.post("/reset-password")
+async def reset_password(payload: UserChangePasswordSchema, response: Response, db: Session = Depends(get_db), mongo_db: AsyncMongoClient = Depends(get_mongo_db)):
+    is_changed = await change_password(payload, db, mongo_db)
+
+    if not is_changed:
+        raise validation_error('token, password', 'Failed to change password.')
+    
+    response.status_code = 200
+    return {
+        'message': 'Password changed successfully.',
     }
