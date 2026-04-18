@@ -13,7 +13,7 @@ from fastapi import BackgroundTasks
 
 router = APIRouter()
 
-@router.post("/")
+@router.post("/signup")
 def create_user(payload: UserCreateSchema, response: Response,  background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     user = add_user(payload, db, response)
 

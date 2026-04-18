@@ -86,7 +86,7 @@ def authenticate_user(payload: UserLoginSchema, db: Session, response: Response)
     user_login = db.query(UserLogin).filter_by(method=payload.method, identifier=payload.identifier).first()
 
     if not user_login or not verify_password(user_login.password, payload.password):
-        raise validation_error('email', 'Invalid credentials.')
+        raise validation_error('method, identifier, password', 'Invalid credentials.')
 
     user = db.query(User).filter_by(id=user_login.user_id).first()
 
